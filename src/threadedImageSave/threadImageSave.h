@@ -69,6 +69,13 @@ class ofThreadImageSave : public ofxThread{
 			
 			if( lock() ){
 				pixels=pix;
+				for(unsigned int i=0; i<_w*_h*3; i++){
+					if(i%(_w*3)==328*3){
+						pixels[i]=pixels[i-3];
+						pixels[i+1]=pixels[i-2];
+						pixels[i+2]=pixels[i-1];
+					}
+				}
 				w=_w,h=_h,count=cnt;
 				start();
 				unlock();
