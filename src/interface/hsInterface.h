@@ -1,8 +1,9 @@
 #include "ofMain.h"
 #include "ofExtended.h"
-#include "XStrmAPI.h"
+#include "XstrmAPI.h"
 #include "../highSpeed.h"
 #include "ofxSystemCall.h"
+#include "ofxNetwork.h"
 
 class hsButton : public ofButton {
 public:
@@ -18,14 +19,24 @@ class hsInterface {
 	ofSystemCall call;
 	ofFont rep;
 	int folderIndex;
-	double timer;
+	//double timer;
+	ofTimer timer;
 	double clipLength;
 
+	ofTimer delay;
+	ofxTCPServer TCP;
 	ofProgressSpinner spin;
+
+	ofRectangle repBar;
 public:
+	~hsInterface();
 	void draw(int x, int y, int w, int h);
+	void drawInterface();
+	void drawInstructions(int x, int y, int w, int h);
+	void drawReportBar();
 	void update();
 	void clickDown( int x, int y);
 	void clickUp();
 	void setup(highSpeed * cam);
 };
+

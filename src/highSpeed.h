@@ -3,7 +3,7 @@
 
 #include "ofMain.h"
 #include "ofExtended.h"
-#include "XStrmAPI.h"
+#include "XstrmAPI.h"
 #include "threadedImageSave\threadImageSave.h"
 
 #define MAKELONGLONG(a,b)	((LONGLONG)(((ULONG)(a)) | ((LONGLONG)((ULONG)(b))) << 32))
@@ -24,7 +24,7 @@ protected:
 	unsigned long nPreFrames,curPlayFrame,nStartIndex;
 	unsigned long startAddLo,startAddHi,memOffset,nFrameSize;
 	unsigned long lastFrame;
-
+	bool justTriggered;
 	unsigned long trigIndex;
 	bool bNewFrame,bOpen,bRecording,bDriverLoaded,bInit;
 	bool bPlaying,bFramesCaptured,bFramesSaved,bFramesReviewed,bFetching;

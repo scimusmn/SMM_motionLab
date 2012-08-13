@@ -4,7 +4,7 @@
 
 #include "ofMain.h"
 #include "ofExtended.h"
-#include "XStrmAPI.h"
+#include "XstrmAPI.h"
 #include "highSpeed.h"
 #include "interface\hsInterface.h"
 #include "threadedImageSave\threadImageSave.h"

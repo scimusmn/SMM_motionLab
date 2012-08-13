@@ -1,20 +1,22 @@
 #include "testApp.h"
+#include "config.h"
 
 //--------------------------------------------------------------
 void testApp::setup(){	 
+	cfg().setup();
 
 	cam.intitialize();
 	
-	cam.setFPS(300);
-	cam.setExposure(50);
+	cam.setFPS(cfg().framesPerSec);
+	cam.setExposure(100);
 
-	int midWid=894;
-	int midHgt=784;
-	cam.setROI(0,(cam.getMaxHeight()-midHgt)/2,midWid,midHgt);
-	cam.setRotation(XS_ROT_90);
+	int midWid=cfg().camHgt;
+	int midHgt=cfg().camWid;
+	cam.setROI((cam.getMaxWidth()-midWid)/2,(cam.getMaxHeight()-midHgt)/2,midWid,midHgt);
+	cam.setRotation(XS_ROT_270);
 
-	videoTexture.allocate(cam.width, cam.height, GL_BGR);
-	imageSave.allocate(cam.width, cam.height, OF_IMAGE_COLOR);
+	//videoTexture.allocate(cam.width, cam.height, GL_BGR);
+	//imageSave.allocate(cam.width, cam.height, OF_IMAGE_COLOR);
 
 	hsCam.setup(&cam);
 }
@@ -29,7 +31,7 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofBackground(0,0,0);
-	hsCam.draw(800,180, imageSave.width, imageSave.height);
+	hsCam.drawInterface();
 }
 
 

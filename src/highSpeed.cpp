@@ -19,7 +19,6 @@ highSpeed::~highSpeed()
 	if(bRecording) stopRecord();
 	if(bOpen) XsCloseCamera(hCam);
 	if(bDriverLoaded) XsUnloadDriver();
-	free(frame.pBuffer);
 	free(pix);
 }
 
@@ -63,7 +62,7 @@ void highSpeed::intitialize(int cameraNum)
 		}
 		else ofLog(OF_LOG_WARNING,"Unable to enumerate cameras!!!\n");
 	}
-	bFramesCaptured=bFramesSaved=false;
+	bFramesCaptured=bFramesSaved=justTriggered=false;
 }
 
 void highSpeed::setExposure(double timeInMillis)
@@ -147,7 +146,6 @@ void highSpeed::setROI(int _x, int _y, int w, int h)
 	XsGetCameraInfo(hCam,XSI_ROI_STEP,&roiStep,&nHi);
 	XsGetCameraInfo(hCam,XSI_SNS_WIDTH,&maxWidth,&nHi);
 	XsGetCameraInfo(hCam,XSI_SNS_HEIGHT,&maxHeight,&nHi);
-	cout << roiStep << endl;
 	if(_x>=0&&_x+w<=maxWidth){
 		if(_y>=0&&_y+h<=maxHeight){
 			x=_x,y=_y;
@@ -160,7 +158,6 @@ void highSpeed::setROI(int _x, int _y, int w, int h)
 			}
 			width=found;
 			height=h;
-			cout << width << " is the width and the height is " << height << endl;
 			XsSetParameter(hCam,&xsCfg,XSP_ROIX,x);
 			XsSetParameter(hCam,&xsCfg,XSP_ROIY,y);
 			XsSetParameter(hCam,&xsCfg,XSP_ROIWIDTH,width);
@@ -191,14 +188,13 @@ void highSpeed::processFrame(unsigned char * pixels)
 
 void highSpeed::getStartAddress()
 {
-	unsigned long trigAddLo=0;
-	unsigned long trigAddHi=0;
-	unsigned long trigTime=0;
-	trigIndex=0;
 
-	XsMemoryReadTriggerPosition(hCam,&trigAddLo,&trigAddHi,&trigIndex,&trigTime);
+	XsGetParameter( hCam, &xsCfg,XSP_STARTADDRLO,&startAddLo);
+	XsGetParameter( hCam, &xsCfg,XSP_STARTADDRHI,&startAddHi);
 
-	nStartIndex=(trigIndex>nPreFrames)?trigIndex-nPreFrames:nFrames-(nPreFrames-trigIndex);
+	XsGetParameter( hCam, &xsCfg,XSP_FRAMES,&nFrames);
+
+	cout << nStartIndex << " is the start index" << endl;
 }
 
 void XSTREAMAPI grabCallback(void* nUserData, XS_ERROR nErrCode, unsigned long cbFlags)
@@ -215,17 +211,26 @@ void highSpeed::grabFrame()
 		if( err ) handleError();
 	}
 	else if(bOpen && !err && bRecording && !bPlaying){
-		err = XsMemoryPreview(hCam,&frame,NULL);
+		unsigned long frameIndex=0;
+		err = XsMemoryPreview(hCam,&frame,&frameIndex);
+		if(justTriggered){
+			nStartIndex=(frameIndex>=nPreFrames)?frameIndex-nPreFrames:nFrames-(nPreFrames-frameIndex);
+			justTriggered=false;
+		}
+		//cout << frameIndex << " is the current frame index" << endl;
 		if( !err ) bNewFrame=true;
 		else handleError();
 	}
 	else if(bOpen && !err && !bRecording && bPlaying && lastFrame != curPlayFrame){
 		unsigned long numFrames=0;
-		if(curPlayFrame<nFrames){
+		if(curPlayFrame<nFrames-10){
 			int curFrame=nStartIndex+curPlayFrame;
 			curFrame = curFrame%nFrames;
+			//cout << curFrame << " is the current frame\n";
 			report="report: Loading frame " + ofToString(int(curPlayFrame)) + " from camera";
-			err = XsMemoryReadFrame(hCam,LOLONG(memOffset),HILONG(memOffset),curFrame, frame.pBuffer);
+			do { //add a delay opt out for breaking
+				err = XsMemoryReadFrame(hCam,startAddLo,startAddHi,curFrame, frame.pBuffer);
+			} while(err);
 			if( !err ) {
 				lastFrame=curPlayFrame;
 				if(bPlaying) curPlayFrame+=20;
@@ -277,8 +282,7 @@ bool highSpeed::isPlaying()
 
 void highSpeed::onExit()
 {
-	//if(bOpen) XsCloseCamera(hCam);
-	//if(bDriverLoaded) XsUnloadDriver();
+	
 }
 
 void highSpeed::handleError(string filter)
@@ -286,9 +290,9 @@ void highSpeed::handleError(string filter)
 	if(err == XS_E_HARDWARE_FAULT) {
 		char buf[256];
 		XsGetHardwareError(hCam,buf,256);
-		cout << buf <<endl;
 		report="error: " + string(buf) + ", call exhibit maintenance";
 	}
+	else cout << "Error: #" << err << endl;
 }
 
 void highSpeed::resetFlags()
