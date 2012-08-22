@@ -28,6 +28,8 @@ class hsInterface {
 	ofProgressSpinner spin;
 
 	ofRectangle repBar;
+
+	ofImage title;
 public:
 	~hsInterface();
 	void draw(int x, int y, int w, int h);

@@ -25,46 +25,50 @@ hsInterface::~hsInterface(){
 void hsInterface::draw(int x, int y, int w, int h)
 {
 	ofPoint border(10,10);
-	ofPoint pad(40,40);
+	ofPoint pad(60,40);
 	int btnWid=activate.w;
 	int btnHgt=activate.h;
 
 	//Main background section
-	Orange();
+	Black();
 	ofRect(x,y,w,h);
-	Red();
-	ofRect(x+border.x,y+border.y,w-border.x*2,h-border.y*2);
 
 	//Camera image size
 	float camWid=cam->width;
 	float camHgt=cam->height;
 	float camWidNew=w-(btnWid*2+border.x*2+pad.x*4);
-	float camHgtNew=h-(border.y*4+pad.y*3+repBar.height);
-	if(w-(btnWid*2+border.x*2+pad.x*4)<camWid){
+	float camHgtNew=h-(border.y*4+pad.y*3+repBar.height+title.height);
+	if(camWidNew<camWid){
 		camHgt=camHgt*(camWidNew/camWid);
 		camWid=camWidNew;
 	}
-	if(h-(border.y*2+pad.y*3+repBar.height)<camHgt){
+	if(camHgtNew<camHgt){
 		camWid=camWid*(camHgtNew/camHgt);
 		camHgt=camHgtNew;
 	}
-	if(w-(btnWid*2+border.x*2+pad.x*4)>camWid&&!h-(border.y*4+pad.y*3+repBar.height)<camHgt*(camWidNew/camWid)){
+	if((camWidNew>camWid)&&!(camHgtNew<camHgt*(camWidNew/camWid))){
 		camHgt=camHgt*((camWidNew-50)/camWid);
 		camWid=camWidNew;
 	}
-	if(h-(border.y*2+pad.y*3+repBar.height)>camHgt&&!w-(btnWid*2+border.x*2+pad.x*4)<camWid*(camHgtNew/camHgt)){
+	if((camHgtNew>camHgt)&&!(camWidNew<camWid*(camHgtNew/camHgt))){
 		camWid=camWid*((camHgtNew-50)/camHgt);
 		camHgt=camHgtNew;
 	}
 
+	int camX=x+(w-camWid)/2;
+	int camY=y+border.y*2+pad.y*2+title.height;
+
+	ofSetColor(255,255,255);
+	title.draw(x+pad.x,y+pad.y);
+
 	//Draw the camera image border
-	Orange();
-	ofRect(x+(w-camWid)/2-border.x,y+border.y+pad.y,camWid+border.x*2,camHgt+border.y*2);
-	cam->draw(x+(w-camWid)/2,y+border.y*2+pad.y,camWid,camHgt);
+	Gray();
+	ofRect(camX-border.x,camY-border.y,camWid+border.x*2,camHgt+border.y*2);
+	cam->draw(camX,camY,camWid,camHgt);
 
 	//--------- notification area
 	repBar.x=x+border.x+pad.x;
-	repBar.y=y+border.y+pad.y*2+camHgt;
+	repBar.y=camY+camHgt+pad.y;
 	repBar.width=w-(border.x+pad.x*2);
 	repBar.height=70;
 
@@ -86,13 +90,13 @@ void hsInterface::draw(int x, int y, int w, int h)
 
 	_x-=5,_y-=5;
 
-	ofSetColor(255,255,0,255*((ofGetElapsedTimeMillis()/500)%2));
+	ofSetColor(yellow().opacity((ofGetElapsedTimeMillis()/500)%2));
 	ofRoundedRect(_x,_y,activate.w+10,activate.h+10,5);
 
-	activate.draw(x+border.x+pad.x,y+border.y+pad.y*2);
-	capture.draw(x+border.x+pad.x,y+border.y+camHgt-capture.h);
-	review.draw(x+w-(review.w+border.x+pad.x),y+border.y+pad.y*2);
-	save.draw(x+w-(save.w+border.x+pad.x), y+border.y+camHgt-save.h);
+	activate.draw(camX-(border.x+pad.x+activate.w),camY-border.y);
+	capture.draw(camX-(border.x+pad.x+activate.w),camY+camHgt-capture.h-pad.y);
+	review.draw(camX+camWid+border.x+pad.x,camY-border.y);
+	save.draw(camX+camWid+border.x+pad.x, camY+camHgt-save.h-pad.y);
 
 	if(cam->isFetching()||cam->retrieved()){
 		ofSetColor(0,0,0,128);
@@ -103,7 +107,7 @@ void hsInterface::draw(int x, int y, int w, int h)
 		ofRect(ofGetWidth()/4,7*ofGetHeight()/8,ofGetWidth()/2,24);
 		ofSetColor(0x0);
 		ofRect(ofGetWidth()/4+3,7*ofGetHeight()/8+3,ofGetWidth()/2-5,18);
-		Red();
+		Orange();
 		ofRect(ofGetWidth()/4+3,7*ofGetHeight()/8+3,(ofGetWidth()/2-5)*cam->percentPlayed(),18);
 	}
 }
@@ -111,16 +115,16 @@ void hsInterface::draw(int x, int y, int w, int h)
 void hsInterface::drawReportBar(){
 	ofPoint border(10,10);
 
-	Orange();
+	Gray();
 	ofRect(repBar.x,repBar.y,repBar.width,repBar.height);
 	Black();
 	ofRect(repBar.x+border.x,repBar.y+border.y,repBar.width-border.x*2,repBar.height-border.y*2);
 
 	vector<string> spl= ofSplitString(report,":");
 
-	if(spl[0]=="report") ofSetColor(0,255,0);
-	if(spl[0]=="warning") ofSetColor(255,255,0);
-	if(spl[0]=="error") ofSetColor(255,0,0);
+	if(spl[0]=="report") Blue();
+	if(spl[0]=="warning") Yellow();
+	if(spl[0]=="error") Red();
 
 	rep.drawString(report,repBar.x+border.x+10,repBar.y+border.y+10);
 }
@@ -138,9 +142,9 @@ void hsInterface::drawInterface()
 	ofRect(startX,70+ySpace*2,50,50);
 	ofShade(startX,70+ySpace*2,50,50,OF_DOWN);
 
-	drawInstructions(50,50,ofGetWidth()/4-75,ofGetHeight()-100);
+	//drawInstructions(50,50,ofGetWidth()/4-75,ofGetHeight()-100);
 
-	draw(ofGetWidth()/4+25,50, 3*ofGetWidth()/4-75, ofGetHeight()-100);
+	draw(0,0,ofGetWidth(), ofGetHeight());
 }
 
 void hsInterface::drawInstructions(int x, int y, int w, int h){
@@ -258,10 +262,12 @@ void hsInterface::clickUp()
 void hsInterface::setup(highSpeed * cm)
 {
 	cam=cm;
-	activate.setup(150,100,"buttons/1regular.jpg","buttons/1selected.jpg");
-	capture.setup(150,100,"buttons/2regular.jpg","buttons/2selected.jpg");
-	review.setup(150,100,"buttons/3regular.jpg","buttons/3selected.jpg");
-	save.setup(150,100,"buttons/4regular.jpg","buttons/4selected.jpg");
+	activate.setup(340,178,"buttons/1regular.png","buttons/1selected.png");
+	capture.setup(340,178,"buttons/2regular.png","buttons/2selected.png");
+	review.setup(340,178,"buttons/3regular.png","buttons/3selected.png");
+	save.setup(340,178,"buttons/4regular.png","buttons/4selected.png");
+
+	title.loadImage("buttons/title.png");
 
 	folderIndex=cfg().startingNumber;
 
