@@ -51,6 +51,8 @@ class ofThreadImageSave : public ofxThread{
 						FIBITMAP * bmp	= FreeImage_ConvertFromRawBits(pixels, w,h, w*bpp/8, bpp, 0,0,0, true);
 						char name[256];
 						sprintf(name,"data\\temp\\%03i.jpg",count);
+						string realName="\""+ofToDataPath(name,true)+"\"";
+						cout <<realName<< endl;
 						FREE_IMAGE_FORMAT fif = FIF_JPEG;
 						FreeImage_Save(fif, bmp, name, 0);
 						if (bmp != NULL){

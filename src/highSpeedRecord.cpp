@@ -83,6 +83,11 @@ void highSpeed::fetchFrames()
 			report="report: Saving frame " + ofToString(int(curPlayFrame)) + " from camera";
 			do {
 				err = XsMemoryReadFrame(hCam,LOLONG(memOffset),HILONG(memOffset),curFrame, frame.pBuffer);
+				if(err){
+					report="error: Trouble reading frame from camera: "+ofToString(err);
+					cout << "Error reading frame from camera: " << err << endl;
+					handleError();
+				}
 			} while(err);
 			if( !err ) {
 				lastFrame=curPlayFrame;

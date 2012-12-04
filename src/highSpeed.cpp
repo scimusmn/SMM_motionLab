@@ -230,6 +230,10 @@ void highSpeed::grabFrame()
 			report="report: Loading frame " + ofToString(int(curPlayFrame)) + " from camera";
 			do { //add a delay opt out for breaking
 				err = XsMemoryReadFrame(hCam,startAddLo,startAddHi,curFrame, frame.pBuffer);
+				if(err){
+					cout << "Error playing frame from camera: " << err << endl;
+					handleError();
+				}
 			} while(err);
 			if( !err ) {
 				lastFrame=curPlayFrame;

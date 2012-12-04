@@ -33,7 +33,7 @@ void configuration::readGeneralConfig(string cfgFile){
 				fileRoot=token[1];
 			}
 			else if(token[0]=="FULLSCREEN"){
-				ofSetFullscreen(true);			//set fullscreen mode 
+				ofSetFullscreen(ofToInt(token[1]));			//set fullscreen mode 
 			}
 			else if(token[0]=="FRAME_SIZE"){
 				camWid=ofToInt(token[1].substr(0,token[1].find('x')));
@@ -44,6 +44,9 @@ void configuration::readGeneralConfig(string cfgFile){
 			}
 			else if(token[0]=="TIME_TO_RECORD"){
 				recordTime=ofToFloat(token[1]);
+			}
+			else if(token[0]=="AUTO_MODE"){
+				autoMode=ofToInt(token[1]);
 			}
 		}
 	}

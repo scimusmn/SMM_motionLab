@@ -14,6 +14,7 @@ struct configuration {
 	int camWid;
 	int camHgt;
 	int framesPerSec;
+	bool autoMode;
 	float recordTime;
 	void readGeneralConfig(string cfgFile);
 	configuration(){

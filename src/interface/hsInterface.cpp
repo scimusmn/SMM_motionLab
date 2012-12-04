@@ -103,9 +103,9 @@ void hsInterface::draw(int x, int y, int w, int h)
 		ofRect(0,0,ofGetWidth(),ofGetHeight());
 		ofSetColor(0xffffff);
 		spin.draw(ofGetWidth()/2,ofGetHeight()/2,ofGetHeight()/2-200);
-		ofSetColor(0xCCCCCC);
+		Gray();
 		ofRect(ofGetWidth()/4,7*ofGetHeight()/8,ofGetWidth()/2,24);
-		ofSetColor(0x0);
+		Black();
 		ofRect(ofGetWidth()/4+3,7*ofGetHeight()/8+3,ofGetWidth()/2-5,18);
 		Orange();
 		ofRect(ofGetWidth()/4+3,7*ofGetHeight()/8+3,(ofGetWidth()/2-5)*cam->percentPlayed(),18);
@@ -164,7 +164,9 @@ void hsInterface::drawInstructions(int x, int y, int w, int h){
 
 void hsInterface::update()
 {
-	if(!cam->isRecording()&&activate.pressed()) activate.clickUp();
+	if(!cam->isRecording()&&activate.pressed()){
+		activate.clickUp();
+	}
 	if(!cam->isPlaying()&&review.pressed()) review.clickUp();
 	if(cam->retrieved()&&save.pressed()){
 		save.clickUp();
@@ -178,18 +180,35 @@ void hsInterface::update()
 	if(cam->retrieved()&&!call.isRunning()){
 		for(int i = 0; i < TCP.getLastID(); i++){
 			if( !TCP.isClientConnected(i) )continue;
+			report="report: Contacting client number "+ ofToString(i)+"\n"; 
 			TCP.send(i,"<packet>");
 			string setString="set="+cfg().folderRoot+ssprintf("%02i",folderIndex );
-			cout << setString<< endl;
+			report="report: Sending set name to client "+ ofToString(i)+"\n";
+			//cout << setString<< endl;
 			TCP.send(i, setString);
 			string rootString="root="+cfg().dest.substr(3);
-			cout << rootString << endl;
+			//cout << rootString << endl;
 			TCP.send(i,rootString);
 			TCP.send(i,"</packet>");
+			report="report: All set information sent to client "+ ofToString(i)+"\n";
 		}
 		report="report: Frames saved to network in position "+ofToString(folderIndex);
 		if(++folderIndex>cfg().numSets) folderIndex=0;
 		cam->resetFlags();
+	}
+	for(int i = 0; i < TCP.getLastID(); i++){
+		if( !TCP.isClientConnected(i) )continue;
+		string str = TCP.receive(i);
+		if(str=="<mapRequest />"){
+			TCP.send(i,"<mapRequest>");
+			string rootString="map_root="+cfg().dest.substr(3);
+			TCP.send(i,rootString);
+			TCP.send(i,"</mapRequest>");
+			cout << rootString << endl;
+		}
+		if(str=="<connectTest />"){
+			//TCP.send(i,"<connectConfirm />");
+		}
 	}
 	if(delay.justExpired()){
 		cam->trigger();
@@ -197,14 +216,18 @@ void hsInterface::update()
 	}
 	if(timer.justExpired()){
 		report="report: Ready to capture frames";
+		if(cfg().autoMode){
+			clickDown(capture.x,capture.y);
+		}
 	}
 }
 	
 void hsInterface::clickDown( int x, int y)
 {
-	if(!cam->isFetching()){
+	if(!cam->isFetching()&&!review.pressed()){
 	//---------- activate button
 		if(!cam->isRecording()&&!call.isRunning()&&!activate.pressed()&&activate.clickDown(x,y)){
+			cam->resetFlags();
 			cam->beginRecord(clipLength);
 			report="report: Began recording a " + ofToString(clipLength,1) + " second loop";
 			timer.set(clipLength/2.);
